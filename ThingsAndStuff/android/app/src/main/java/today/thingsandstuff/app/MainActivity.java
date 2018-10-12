@@ -1,4 +1,4 @@
-package com.thingsandstuff;
+package today.thingsandstuff.app;
 
 import com.facebook.react.ReactActivity;
 
