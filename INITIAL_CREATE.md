@@ -28,7 +28,8 @@ npm install @babel/runtime
 
 ## Rename the app package
 
-You can use the `react-native-rename` tool from npm, or do it manually:
+You can use the `react-native-rename` tool, read more from [react-native-init](https://github.com/teallabs/react-native-init) package.
+or do it manually:
 
 - Change the `applicationId` inside `ThingsAndStuff/android/app/build.gradle` to be `today.thingsandstuff.app`
 - Change the `package` inside `ThingsAndStuff/android/app/src/AndroidManifest.xml` to be `today.thingsandstuff.app`
