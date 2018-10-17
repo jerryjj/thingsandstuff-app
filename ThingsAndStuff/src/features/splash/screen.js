@@ -1,19 +1,29 @@
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, ActivityIndicator} from 'react-native';
+
+import {
+  Container,
+  Content,
+  Text,
+} from 'native-base';
 
 export default class Splash extends Component {
   componentDidMount() {
     setTimeout(() => {
       this.props.navigation.navigate('LoginStack')
+      //this.props.navigation.navigate('MainStack')
     }, 800)
   }
 
   render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Things And Stuff</Text>
-        <Text style={styles.subtitle}>Today!</Text>
-      </View>
+      <Container style={styles.container}>
+        <Content padder>
+          <Text style={styles.title}>Things And Stuff</Text>
+          <Text style={styles.subtitle}>Today!</Text>
+          <ActivityIndicator />
+        </Content>
+      </Container>
     );
   }
 }
