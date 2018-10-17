@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator ,createDrawerNavigator } from 'react-navigation';
+import { createSwitchNavigator, createStackNavigator ,createDrawerNavigator } from 'react-navigation';
 
 import {SCREEN_NAME as SPLASH_SCREEN_NAME} from './features/splash/constants';
 import SplashScreen from './features/splash/screen';
@@ -7,17 +7,16 @@ import SplashScreen from './features/splash/screen';
 import {SCREEN_NAME as LOGIN_SCREEN_NAME} from './features/login/constants';
 import LoginScreen from './features/login/screen';
 
-import {SCREEN_NAME as THINGS_SCREEN_NAME} from './features/things/constants';
-import ThingsScreen from './features/things/screen';
-
-import {SCREEN_NAME as STUFF_SCREEN_NAME} from './features/stuff/constants';
-import StuffScreen from './features/stuff/screen';
-
 import Drawer from './features/drawer';
 
+import {
+  Root,
+} from 'native-base';
+
+import ThingsStack from './features/things/navigator';
+
 const DrawerStack = createDrawerNavigator({
-  [THINGS_SCREEN_NAME]: ThingsScreen,
-  [STUFF_SCREEN_NAME]: StuffScreen,
+  ThingsStack: ThingsStack,
 }, {
   gesturesEnabled: false,
   contentComponent: Drawer,
@@ -41,7 +40,6 @@ const LoginStack = createStackNavigator(
 
 const AppStack = createStackNavigator(
   {
-    LoginStack: LoginStack,
     MainStack: DrawerNavigation
   },
   {
@@ -49,12 +47,13 @@ const AppStack = createStackNavigator(
   },
 )
 
-const RootStack = createStackNavigator(
+const RootStack = createSwitchNavigator(
   {
     [SPLASH_SCREEN_NAME]: {
       screen: SplashScreen
     },
-    AppStack
+    AppStack,
+    LoginStack: LoginStack,
   },
   {
     initialRouteName: SPLASH_SCREEN_NAME,
@@ -64,6 +63,10 @@ const RootStack = createStackNavigator(
 
 export default class App extends React.Component {
   render() {
-    return <RootStack />;
+    return (
+      <Root>
+        <RootStack />
+      </Root>
+    );
   }
 }
