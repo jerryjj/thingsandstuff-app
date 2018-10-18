@@ -160,13 +160,13 @@ export default class Things extends Component {
               return this.renderThing(thing);
             })}
           </Content>
-          <Fab
+          {/* <Fab
             containerStyle={{ }}
             style={{ backgroundColor: '#5067FF' }}
             position="bottomRight"
             onPress={() => this.props.navigation.navigate(ADD_SCREEN_NAME)}>
             <Icon type="Feather" name="plus" />
-          </Fab>
+          </Fab> */}
         </View>
       </Container>
     );

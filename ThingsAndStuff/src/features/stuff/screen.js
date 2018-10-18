@@ -179,7 +179,7 @@ export default class Stuff extends Component {
               return this.renderStuff(stuff);
             })}
           </Content>
-          <Fab
+          {/* <Fab
             active={this.state.addIsActive}
             direction="up"
             containerStyle={{ }}
@@ -199,7 +199,7 @@ export default class Stuff extends Component {
               onPress={() => this.addStuff('image')}>
               <Icon type="FontAwesome" name={this.getStuffTypeIcon('image')} />
             </Button>
-          </Fab>
+          </Fab> */}
         </View>
       </Container>
     );
