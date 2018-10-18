@@ -31,6 +31,10 @@ export default class AddThing extends Component {
     };
   }
 
+  componentDidMount() {
+    firebase.analytics().setCurrentScreen('add-thing', 'AddThings');
+  }
+
   saveThing() {
     const data = {
       title: this.state.title,
@@ -56,6 +60,7 @@ export default class AddThing extends Component {
     }
 
     console.log('saveThing', data);
+    firebase.analytics().logEvent('new_thing', {});
 
     this.ref.add(data)
     .then((snap) => {

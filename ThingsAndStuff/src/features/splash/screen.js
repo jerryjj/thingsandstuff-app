@@ -18,8 +18,11 @@ export default class Splash extends Component {
   }
 
   componentDidMount() {
+    firebase.analytics().setCurrentScreen('splash', 'Splash');
+
     this.unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       if (user) {
+        firebase.analytics().setUserId(user.uid);
         firebase.firestore().collection('users').doc(user.uid).get()
         .then((snap) => {
           this.props.navigation.navigate(THINGS_SCREEN_NAME, {

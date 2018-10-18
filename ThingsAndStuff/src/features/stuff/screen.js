@@ -37,11 +37,16 @@ export default class Stuff extends Component {
       loading: true,
       stuffs: [],
       user: props.navigation.getParam('user', null),
+      thingId: thingId
     };
   }
 
   componentDidMount() {
-    this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate);
+    this.unsubscribe = this.ref.orderBy('publishedAt', 'desc').onSnapshot(this.onCollectionUpdate);
+    firebase.analytics().setCurrentScreen('stuff', 'Stuff');
+    firebase.analytics().logEvent('list_stuff', {
+      thing: this.state.thingId
+    });
   }
 
   componentWillUnmount() {

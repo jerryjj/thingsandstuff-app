@@ -40,7 +40,10 @@ export default class Things extends Component {
   }
 
   componentDidMount() {
-    this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate);
+    this.unsubscribe = this.ref.orderBy('publishedAt', 'desc').onSnapshot(this.onCollectionUpdate);
+
+    firebase.analytics().setCurrentScreen('things', 'Things');
+    firebase.analytics().logEvent('list_things', {});
   }
 
   componentWillUnmount() {
