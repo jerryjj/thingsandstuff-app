@@ -12,19 +12,9 @@ import {
   Input
 } from 'native-base';
 
+import firebase from 'react-native-firebase';
+
 export default class Login extends Component {
-  static navigationOptions = ({ navigation, navigationOptions }) => {
-    //const { params } = navigation.state;
-
-    return {
-      title: 'Login',
-      // headerStyle: {
-      //   backgroundColor: navigationOptions.headerTintColor,
-      // },
-      // headerTintColor: navigationOptions.headerStyle.backgroundColor,
-    };
-  };
-
   constructor(props) {
     super(props);
     this.unsubscribe = null;
@@ -34,17 +24,63 @@ export default class Login extends Component {
       nicknameInput: '',
       phoneNumber: '+358',
       confirmResult: null,
+      user: null
     };
   }
 
   componentDidMount() {
-    // setTimeout(() => {
-    //   this.props.navigation.navigate('MainStack')
-    // }, 1000)
+    this.unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        this.setState({ user: user.toJSON() });
+      } else {
+        this.setState({
+          message: '',
+          codeInput: '',
+          phoneNumber: '+358',
+          confirmResult: null,
+        });
+      }
+    });
   }
 
-  signIn() {
-    this.props.navigation.navigate('MainStack');
+  componentWillUnmount() {
+    if (this.unsubscribe) this.unsubscribe();
+  }
+
+  signIn = () => {
+    const { phoneNumber } = this.state;
+    this.setState({ message: 'Sending code ...' });
+
+    firebase.auth().signInWithPhoneNumber(phoneNumber)
+      .then(confirmResult => this.setState({ confirmResult, message: 'Code has been sent!' }))
+      .catch(error => this.setState({ message: `Sign In With Phone Number Error: ${error.message}` }));
+  };
+
+  confirmCode = () => {
+    const { codeInput, confirmResult } = this.state;
+
+    if (confirmResult && codeInput.length) {
+      confirmResult.confirm(codeInput)
+        .then((user) => {
+          this.setState({ message: 'Code Confirmed!' });
+        })
+        .catch(error => this.setState({ message: `Code Confirm Error: ${error.message}` }));
+    }
+  };
+
+  setNickname = () => {
+    const user = this.state.user;
+
+    const ref = firebase.firestore().collection('users').doc(user.uid);
+    ref.set({
+      id: user.uid,
+      nickname: this.state.nicknameInput,
+      totalThings: 0,
+    }).then(() => {
+      this.props.navigation.navigate('MainStack', {
+        user: user
+      });
+    }).catch((err) => console.log(err));
   }
 
   renderPhoneNumberInput() {
@@ -125,7 +161,14 @@ export default class Login extends Component {
   }
 
   render() {
-    const content = this.renderPhoneNumberInput();
+    const { user, confirmResult } = this.state;
+    let content = this.renderPhoneNumberInput();
+
+    if (user) {
+      content = this.renderRegisterNickname();
+    } else if (confirmResult) {
+      content = this.renderVerificationCodeInput();
+    }
 
     return (
       <Container>
