@@ -26,13 +26,15 @@ export default class Login extends Component {
       nicknameInput: '',
       phoneNumber: '+358',
       confirmResult: null,
-      user: null
+      user: null,
+      signingIn: false
     };
   }
 
   componentDidMount() {
     this.unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       if (user) {
+        firebase.analytics().setUserId(user.uid);
         this.setState({ user: user.toJSON() });
       } else {
         this.setState({
@@ -51,7 +53,9 @@ export default class Login extends Component {
 
   signIn = () => {
     const { phoneNumber } = this.state;
-    this.setState({ message: 'Sending code ...' });
+    this.setState({ message: 'Sending code ...', signingIn: true });
+
+    firebase.analytics().logEvent('login_phonenumber', {});
 
     firebase.auth().signInWithPhoneNumber(phoneNumber)
       .then(confirmResult => this.setState({ confirmResult, message: 'Code has been sent!' }))
@@ -62,6 +66,8 @@ export default class Login extends Component {
     const { codeInput, confirmResult } = this.state;
 
     if (confirmResult && codeInput.length) {
+      firebase.analytics().logEvent('login_confirmcode', {});
+
       confirmResult.confirm(codeInput)
         .then((user) => {
           this.setState({ message: 'Code Confirmed!' });
@@ -73,6 +79,8 @@ export default class Login extends Component {
   setNickname = () => {
     const user = this.state.user;
 
+    firebase.analytics().logEvent('register_nickname', {});
+
     const ref = firebase.firestore().collection('users').doc(user.uid);
     ref.set({
       id: user.uid,
@@ -82,7 +90,10 @@ export default class Login extends Component {
       this.props.navigation.navigate(THINGS_SCREEN_NAME, {
         user: snap.data()
       });
-    }).catch((err) => console.log(err));
+    }).catch((err) => {
+      console.log(err)
+      this.setState({ message: `Error saving nick ${err}` });
+    });
   }
 
   renderPhoneNumberInput() {
@@ -101,7 +112,7 @@ export default class Login extends Component {
             />
           </Item>
         </Form>
-        <Button onPress={() => this.signIn()}>
+        <Button onPress={() => this.signIn()} disabled={this.state.signingIn}>
           <Text>Login</Text>
         </Button>
       </Content>
@@ -168,13 +179,18 @@ export default class Login extends Component {
 
     if (user) {
       content = this.renderRegisterNickname();
+      firebase.analytics().setCurrentScreen('register', 'Register');
     } else if (confirmResult) {
       content = this.renderVerificationCodeInput();
+      firebase.analytics().setCurrentScreen('login-verification', 'LoginVerifyCode');
+    } else {
+      firebase.analytics().setCurrentScreen('login-phonenumber', 'LoginPhoneNumber');
     }
 
     return (
       <Container>
         {content}
+        {this.renderMessage()}
       </Container>
     );
   }
