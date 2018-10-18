@@ -10,9 +10,9 @@ import {
 export default class Splash extends Component {
   componentDidMount() {
     setTimeout(() => {
-      this.props.navigation.navigate('LoginStack')
-      //this.props.navigation.navigate('MainStack')
-    }, 800)
+      //this.props.navigation.navigate('LoginStack')
+      this.props.navigation.navigate('MainStack')
+    }, 400)
   }
 
   render() {
