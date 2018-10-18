@@ -14,15 +14,20 @@ import {
   Text,
 } from 'native-base';
 
+import firebase from 'react-native-firebase';
+
 export default class AddThing extends Component {
   constructor(props) {
     super(props);
+
+    this.ref = firebase.firestore().collection('things');
 
     this.state = {
       title: '',
       description: '',
       titleError: false,
-      descriptionError: false
+      descriptionError: false,
+      user: props.navigation.getParam('user', null),
     };
   }
 
@@ -30,17 +35,34 @@ export default class AddThing extends Component {
     const data = {
       title: this.state.title,
       description: this.state.description,
+      creator: {
+        id: this.state.user.id,
+        name: this.state.user.nickname
+      },
+      likes: {
+        total: 0
+      },
+      publishedAt: new Date()
     };
 
-    if (!data.title) {
-      this.setState({[`titleError`]: true});
-    }
-    if (!data.description) {
-      this.setState({[`descriptionError`]: true});
+    if (!data.title || !data.description) {
+      if (!data.title) {
+        this.setState({[`titleError`]: true});
+      }
+      if (!data.description) {
+        this.setState({[`descriptionError`]: true});
+      }
+      return;
     }
 
     console.log('saveThing', data);
-    this.props.navigation.goBack();
+
+    this.ref.add(data)
+    .then((snap) => {
+      this.props.navigation.goBack();
+    }).catch((err) => {
+      console.log('Error saving thing', err);
+    });
   }
 
   setValue(field, value) {

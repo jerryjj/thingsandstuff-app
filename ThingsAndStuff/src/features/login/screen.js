@@ -12,6 +12,8 @@ import {
   Input
 } from 'native-base';
 
+import {SCREEN_NAME as THINGS_SCREEN_NAME} from '../things/constants';
+
 import firebase from 'react-native-firebase';
 
 export default class Login extends Component {
@@ -76,9 +78,9 @@ export default class Login extends Component {
       id: user.uid,
       nickname: this.state.nicknameInput,
       totalThings: 0,
-    }).then(() => {
-      this.props.navigation.navigate('MainStack', {
-        user: user
+    }).then((snap) => {
+      this.props.navigation.navigate(THINGS_SCREEN_NAME, {
+        user: snap.data()
       });
     }).catch((err) => console.log(err));
   }
