@@ -82,13 +82,15 @@ export default class Login extends Component {
     firebase.analytics().logEvent('register_nickname', {});
 
     const ref = firebase.firestore().collection('users').doc(user.uid);
-    ref.set({
+    const userData = {
       id: user.uid,
       nickname: this.state.nicknameInput,
       totalThings: 0,
-    }).then((snap) => {
+    };
+    ref.set(userData)
+    .then(() => {
       this.props.navigation.navigate(THINGS_SCREEN_NAME, {
-        user: snap.data()
+        user: userData
       });
     }).catch((err) => {
       console.log(err)
