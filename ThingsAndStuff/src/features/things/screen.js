@@ -44,10 +44,78 @@ export default class Things extends Component {
 
     firebase.analytics().setCurrentScreen('things', 'Things');
     firebase.analytics().logEvent('list_things', {});
+
+    this.checkForNotificationPermissions();
+
+    this.notificationDisplayedListener = firebase.notifications().onNotificationDisplayed((notification) => {
+      // Process your notification as required
+      // ANDROID: Remote notifications do not contain the channel ID. You will have to specify this manually if you'd like to re-display the notification.
+      console.log('onNotificationDisplayed', notification);
+    });
+    this.notificationListener = firebase.notifications().onNotification((notification) => {
+        // Process your notification as required
+        console.log('onNotification', notification);
+    });
+    this.onTokenRefreshListener = firebase.messaging().onTokenRefresh(fcmToken => {
+      console.log('onTokenRefreshListener', fcmToken);
+      this.updateUsersNotificationToken(fcmToken);
+    });
   }
 
   componentWillUnmount() {
     this.unsubscribe();
+    this.notificationDisplayedListener();
+    this.notificationListener();
+    this.onTokenRefreshListener();
+  }
+
+  checkForNotificationPermissions() {
+    firebase.messaging().hasPermission()
+    .then(enabled => {
+      if (enabled) {
+        console.log('has permissions');
+        this.getUserNotificationToken();
+      } else {
+        console.log('doesnt have permissions');
+        this.requestNotificationPermissions();
+      } 
+    });
+  }
+
+  requestNotificationPermissions() {
+    firebase.messaging().requestPermission()
+    .then(() => {
+      console.log('got permissions');
+      this.getUserNotificationToken();
+    })
+    .catch(err => {
+      console.log('failed to get permissions', err);
+    });
+  }
+
+  getUserNotificationToken() {
+    firebase.messaging().getToken()
+    .then(fcmToken => {
+      if (fcmToken) {
+        this.updateUsersNotificationToken(fcmToken);
+      } else {
+        console.log('no token yet')
+      } 
+    });
+  }
+
+  updateUsersNotificationToken(token) {
+    const user = this.state.user;
+    const ref = firebase.firestore().collection('users').doc(user.id);
+
+    ref.update({
+      pushToken: token
+    })
+    .then(() => {
+      console.log('token stored');
+    }).catch((err) => {
+      console.log('token store failed', err)
+    });
   }
 
   onCollectionUpdate = (querySnapshot) => {
