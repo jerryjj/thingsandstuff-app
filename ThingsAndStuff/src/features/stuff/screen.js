@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {StyleSheet, Image, Linking, View} from 'react-native';
+import {StyleSheet, Image, Linking, View, ActivityIndicator} from 'react-native';
 
 import {
   Container,
@@ -19,13 +19,57 @@ import {
 
 import {ADD_SCREEN_NAME} from './constants';
 
+import firebase from 'react-native-firebase';
+
+import Moment from 'react-moment';
+import 'moment-timezone';
+
 export default class Stuff extends Component {
   constructor(props) {
     super(props);
 
+    const thingId = props.navigation.getParam('thingId', '')
+    this.ref = firebase.firestore().collection(`things/${thingId}/stuff`);
+    this.unsubscribe = null;
+
     this.state = {
-      addIsActive: false
+      addIsActive: false,
+      loading: true,
+      stuffs: [],
     };
+  }
+
+  componentDidMount() {
+    this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate);
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  onCollectionUpdate = (querySnapshot) => {
+    const stuffs = [];
+    querySnapshot.forEach((doc) => {
+      const { type, title, description, publishedAt, creator, likes } = doc.data();
+      const item = {
+        id: doc.id,
+        type,
+        title,
+        description,
+        publishedAt,
+        likes: likes.total,
+        creatorName: creator.name
+      };
+
+      item[type] = doc.data()[type];
+
+      stuffs.push(item);
+    });
+
+    this.setState({ 
+      stuffs,
+      loading: false,
+    });
   }
 
   getStuffTypeIcon(type) {
@@ -42,23 +86,26 @@ export default class Stuff extends Component {
   renderStuff(data) {
     let body = null;
 
-    if (data.text) {
-      body = (
-        <Body>
-          <Text>{data.text}</Text>
-        </Body>
-      );
-    } else if (data.link) {
-      body = (
-        <Body>
-          <Text style={{color: 'blue'}}
-            onPress={() => Linking.openURL(data.link)}>{data.link}</Text>
-        </Body>
-      );
-    } else if (data.imageUri) {
-      body = (
-        <Image source={{uri: data.image}} style={{height: 200, width: null, flex: 1}}/>
-      );
+    switch (data.type) {
+      case 'text':
+        body = (
+          <Body>
+            <Text>{data.text}</Text>
+          </Body>
+        );
+        break;
+      case 'link':
+        body = (
+          <Body>
+            <Text style={{color: 'blue'}}
+              onPress={() => Linking.openURL(data.link)}>{data.link}</Text>
+          </Body>
+        );
+        break;
+      case 'image':
+        body = (
+          <Image source={{uri: data.image}} style={{height: 200, width: null, flex: 1}}/>
+        );
     }
 
     return (
@@ -85,7 +132,7 @@ export default class Stuff extends Component {
           <Body>
           </Body>
           <Right>
-            <Text>{data.publishedAt}</Text>
+            <Moment fromNow ago element={Text} date={data.publishedAt}></Moment>
           </Right>
         </CardItem>
       </Card>
@@ -102,38 +149,16 @@ export default class Stuff extends Component {
   }
 
   render() {
+    if (this.state.loading) {
+      return (
+        <ActivityIndicator />
+      );
+    }
+
     const thingId = this.props.navigation.getParam('thingId', '');
     const thingTitle = this.props.navigation.getParam('thingTitle', '');
 
-    let stuffs = [
-      {
-        id: '1',
-        title: 'PWA is a Things',
-        type: 'image',
-        creatorName: 'PWARockzzz',
-        image: 'https://cdn-images-1.medium.com/max/1200/1*B_G1gC-kjuNpRUt-nepHUA.png',
-        likes: 24,
-        publishedAt: '11 days ago'
-      },
-      {
-        id: '2',
-        title: 'My Opinion',
-        type: 'text',
-        creatorName: 'TardisLover77',
-        text: 'I feel like this is the next biggest thing',
-        likes: 24,
-        publishedAt: '11 days ago'
-      },
-      {
-        id: '3',
-        title: 'PWARocks',
-        type: 'link',
-        creatorName: 'MeanTeam',
-        link: 'https://pwa.rocks/',
-        likes: 24,
-        publishedAt: '11 days ago'
-      },
-    ];
+    const stuffs = this.state.stuffs;
 
     return (
       <Container>

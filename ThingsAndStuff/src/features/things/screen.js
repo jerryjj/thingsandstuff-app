@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, ActivityIndicator} from 'react-native';
 
 import {SCREEN_NAME as STUFF_SCREEN_NAME} from '../stuff/constants';
 import {ADD_SCREEN_NAME} from './constants';
@@ -21,11 +21,56 @@ import {
   Text,
 } from 'native-base';
 
+import firebase from 'react-native-firebase';
+
+import Moment from 'react-moment';
+import 'moment-timezone';
+
 export default class Things extends Component {
+  constructor(props) {
+    super(props);
+    this.ref = firebase.firestore().collection('things');
+    this.unsubscribe = null;
+
+    this.state = {
+      loading: true,
+      things: [],
+  };
+  }
+
+  componentDidMount() {
+    this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate);
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  onCollectionUpdate = (querySnapshot) => {
+    const things = [];
+    querySnapshot.forEach((doc) => {
+      const { title, description, publishedAt, creator, likes } = doc.data();
+      things.push({
+        id: doc.id,
+        title,
+        description,
+        publishedAt,
+        likes: likes.total,
+        creatorName: creator.name
+      });
+    });
+
+    this.setState({ 
+      things,
+      loading: false,
+    });
+  }
+
   gotoStuff(data) {
     this.props.navigation.navigate(STUFF_SCREEN_NAME, {
       thingId: data.id,
-      thingTitle: data.title
+      thingTitle: data.title,
+      thingDoc: data.doc,
     });
   }
 
@@ -53,7 +98,7 @@ export default class Things extends Component {
           <Body>
           </Body>
           <Right>
-            <Text>{data.publishedAt}</Text>
+            <Moment fromNow ago element={Text} date={data.publishedAt}></Moment>
           </Right>
         </CardItem>
       </Card>
@@ -61,33 +106,39 @@ export default class Things extends Component {
   }
 
   render() {
+    if (this.state.loading) {
+      return (
+        <ActivityIndicator />
+      );
+    }
 
-    let things = [
-      {
-        id: '1',
-        title: 'PWA is a Things',
-        creatorName: 'PWARockzzz',
-        description: 'I luv PWAs',
-        likes: 24,
-        publishedAt: '11 days ago'
-      },
-      {
-        id: '2',
-        title: 'Whittaker Who?',
-        creatorName: 'TardisLover77',
-        description: 'Latest Docter is a Woman!',
-        likes: 24,
-        publishedAt: '11 days ago'
-      },
-      {
-        id: '3',
-        title: 'Firebase & React, Is this Love?',
-        creatorName: 'FireTeam12',
-        description: 'Is this the best thing yet?',
-        likes: 24,
-        publishedAt: '11 days ago'
-      },
-    ];
+    const things = this.state.things;
+    // [
+    //   {
+    //     id: '1',
+    //     title: 'PWA is a Things',
+    //     creatorName: 'PWARockzzz',
+    //     description: 'I luv PWAs',
+    //     likes: 24,
+    //     publishedAt: '11 days ago'
+    //   },
+    //   {
+    //     id: '2',
+    //     title: 'Whittaker Who?',
+    //     creatorName: 'TardisLover77',
+    //     description: 'Latest Docter is a Woman!',
+    //     likes: 24,
+    //     publishedAt: '11 days ago'
+    //   },
+    //   {
+    //     id: '3',
+    //     title: 'Firebase & React, Is this Love?',
+    //     creatorName: 'FireTeam12',
+    //     description: 'Is this the best thing yet?',
+    //     likes: 24,
+    //     publishedAt: '11 days ago'
+    //   },
+    // ];
 
     return (
       <Container>
