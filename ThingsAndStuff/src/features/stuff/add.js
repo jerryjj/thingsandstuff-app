@@ -31,6 +31,7 @@ export default class AddStuff extends Component {
       thingId: thingId,
       type: type = props.navigation.getParam('type', 'text'),
       user: props.navigation.getParam('user', null),
+      saving: false,
     };
   }
 
@@ -58,6 +59,8 @@ export default class AddStuff extends Component {
       return;
     }
 
+    this.setState({ saving: true });
+
     console.log('saveStuff', data);
     firebase.analytics().logEvent('new_stuff', {
       thing: this.state.thingId,
@@ -66,6 +69,7 @@ export default class AddStuff extends Component {
 
     this.ref.add(data)
     .then((snap) => {
+      this.setState({ saving: false });
       this.props.navigation.goBack();
     }).catch((err) => {
       console.log('Error saving stuff', err);
@@ -138,7 +142,7 @@ export default class AddStuff extends Component {
             </Item>
             {typeItem}
             <View style={styles.buttonHolder}>
-              <Button onPress={() => this.saveThing()}>
+              <Button onPress={() => this.saveThing()} disabled={this.state.saving}>
                 <Text>Create</Text>
               </Button>
             </View>

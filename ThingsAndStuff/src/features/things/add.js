@@ -28,6 +28,7 @@ export default class AddThing extends Component {
       titleError: false,
       descriptionError: false,
       user: props.navigation.getParam('user', null),
+      saving: false,
     };
   }
 
@@ -59,11 +60,14 @@ export default class AddThing extends Component {
       return;
     }
 
+    this.setState({ saving: true });
+
     console.log('saveThing', data);
     firebase.analytics().logEvent('new_thing', {});
 
     this.ref.add(data)
     .then((snap) => {
+      this.setState({ saving: false });
       this.props.navigation.goBack();
     }).catch((err) => {
       console.log('Error saving thing', err);
@@ -100,7 +104,7 @@ export default class AddThing extends Component {
                />
             </Item>
             <View style={styles.buttonHolder}>
-              <Button onPress={() => this.saveThing()}>
+              <Button onPress={() => this.saveThing()} disabled={this.state.saving}>
                 <Text>Create</Text>
               </Button>
             </View>
