@@ -7,12 +7,35 @@ import {
   Text,
 } from 'native-base';
 
+import {SCREEN_NAME as THINGS_SCREEN_NAME} from '../things/constants';
+
+import firebase from 'react-native-firebase';
+
 export default class Splash extends Component {
+  constructor(props) {
+    super(props);
+    this.unsubscribe = null;
+  }
+
   componentDidMount() {
-    setTimeout(() => {
-      //this.props.navigation.navigate('LoginStack')
-      this.props.navigation.navigate('MainStack')
-    }, 400)
+    this.unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        firebase.firestore().collection('users').doc(user.uid).get()
+        .then((snap) => {
+          this.props.navigation.navigate(THINGS_SCREEN_NAME, {
+            user: snap.data()
+          });
+        }).catch((err) => {
+          this.props.navigation.navigate('LoginStack');
+        });
+      } else {
+        this.props.navigation.navigate('LoginStack');
+      }
+    });
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribe) this.unsubscribe();
   }
 
   render() {

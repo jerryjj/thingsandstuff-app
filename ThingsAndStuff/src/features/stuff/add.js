@@ -14,23 +14,38 @@ import {
   Text,
 } from 'native-base';
 
+import firebase from 'react-native-firebase';
+
 export default class AddStuff extends Component {
   constructor(props) {
     super(props);
+
+    const thingId = props.navigation.getParam('thingId', '')
+    this.ref = firebase.firestore().collection(`things/${thingId}/stuff`);
 
     this.state = {
       title: '',
       description: '',
       titleError: false,
       typeError: false,
-      type: type = props.navigation.getParam('type', 'text')
+      thingId: thingId,
+      type: type = props.navigation.getParam('type', 'text'),
+      user: props.navigation.getParam('user', null),
     };
   }
 
   saveThing() {
     const data = {
       title: this.state.title,
-      type: this.state.type
+      type: this.state.type,
+      creator: {
+        id: this.state.user.id,
+        name: this.state.user.nickname
+      },
+      likes: {
+        total: 0
+      },
+      publishedAt: new Date()
     };
 
     data[this.state.type] = this.state.typeValue;
@@ -40,7 +55,13 @@ export default class AddStuff extends Component {
     }
 
     console.log('saveStuff', data);
-    this.props.navigation.goBack();
+
+    this.ref.add(data)
+    .then((snap) => {
+      this.props.navigation.goBack();
+    }).catch((err) => {
+      console.log('Error saving stuff', err);
+    });
   }
 
   setValue(field, value) {
@@ -60,9 +81,6 @@ export default class AddStuff extends Component {
   }
 
   render() {
-    const thingId = this.props.navigation.getParam('thingId', '');
-    //const type = this.props.navigation.getParam('type', '');
-
     let typeItem = null;
 
     switch (this.state.type) {

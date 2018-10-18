@@ -36,6 +36,7 @@ export default class Stuff extends Component {
       addIsActive: false,
       loading: true,
       stuffs: [],
+      user: props.navigation.getParam('user', null),
     };
   }
 
@@ -144,7 +145,8 @@ export default class Stuff extends Component {
 
     this.props.navigation.navigate(ADD_SCREEN_NAME, {
       thingId: thingId,
-      type: type
+      type: type,
+      user: this.state.user
     });
   }
 

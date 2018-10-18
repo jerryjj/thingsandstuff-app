@@ -35,7 +35,8 @@ export default class Things extends Component {
     this.state = {
       loading: true,
       things: [],
-  };
+      user: props.navigation.getParam('user', null),
+    };
   }
 
   componentDidMount() {
@@ -71,6 +72,7 @@ export default class Things extends Component {
       thingId: data.id,
       thingTitle: data.title,
       thingDoc: data.doc,
+      user: this.state.user
     });
   }
 
@@ -164,7 +166,9 @@ export default class Things extends Component {
             containerStyle={{ }}
             style={{ backgroundColor: '#5067FF' }}
             position="bottomRight"
-            onPress={() => this.props.navigation.navigate(ADD_SCREEN_NAME)}>
+            onPress={() => this.props.navigation.navigate(ADD_SCREEN_NAME, {
+              user: this.state.user
+            })}>
             <Icon type="Feather" name="plus" />
           </Fab>
         </View>
